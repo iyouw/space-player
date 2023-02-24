@@ -57,7 +57,7 @@ export class Player {
   }
 
   public load(mediaInfo: IMediaInformation): Player {
-    ThrowHelper.ThrowIfFalsy(this._root, `player haddn't mount to the dom`);
+    ThrowHelper.ThrowIf(!this._root, `player haddn't mount to the dom`);
     if (this._mediaInformation) this.stop();
     this._mediaInformation = mediaInfo;
     this._ioContext.open(this._mediaInformation.url);

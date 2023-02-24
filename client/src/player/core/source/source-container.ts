@@ -6,7 +6,7 @@ export class SourceContainer {
 
   public static CreateDefault(): SourceContainer {
     const container = new SourceContainer();
-    container.appendSource(WebSocketSource.Default);
+    container.append(WebSocketSource.Default);
     return container;
   }
 
@@ -16,12 +16,12 @@ export class SourceContainer {
     this._sources = new Array<ISource>();
   }
 
-  public appendSource(source: ISource): SourceContainer {
+  public append(source: ISource): SourceContainer {
     this._sources.push(source);
     return this;
   }
 
-  public prependSource(source: ISource): SourceContainer {
+  public prepend(source: ISource): SourceContainer {
     this._sources.unshift(source);
     return this;
   }

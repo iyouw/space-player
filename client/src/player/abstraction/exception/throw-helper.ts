@@ -4,4 +4,8 @@ export class ThrowHelper {
     if (typeof expression === `number` && Number.isNaN(expression))
       throw new Error(message);
   }
+
+  public static ThrowIf(expression: unknown, message: string): void {
+    if (expression) throw new Error(message);
+  }
 }

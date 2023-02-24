@@ -1,28 +1,35 @@
-import { Logging } from "@/player/abstraction";
+import type { IDemuxer } from "@/player/abstraction";
+import { BitBuffer } from "../buffer/bit-buffer";
 import { FormatContainer } from "../format/format-container";
 
 export class FormatContext {
   private _formatContainer: FormatContainer;
 
-  private _buffers: Array<ArrayBuffer>;
+  private _buffer: BitBuffer;
+
+  private _demuxer?: IDemuxer;
+
+  private _notSupportedFormat: boolean;
 
   public constructor() {
     this._formatContainer = FormatContainer.Default;
-    this._buffers = new Array<ArrayBuffer>();
+    this._buffer = new BitBuffer();
+    this._notSupportedFormat = false;
   }
 
   public appendData(data: ArrayBuffer): void {
-    this._buffers.push(data);
-    Logging.LogInformation(
-      FormatContext.name,
-      `is packet length: ${data.byteLength % 188 === 0}, ${
-        data.byteLength / 188
-      } packets, received(byte): ${
-        data.byteLength
-      }, total received(byte): ${this._buffers.reduce(
-        (ret, item) => (ret += item.byteLength),
-        0
-      )}`
-    );
+    if (this._notSupportedFormat) return;
+    this._buffer.appendBuffer(data);
+    if (!this._demuxer) {
+      const res = this._formatContainer.probe(this._buffer);
+      if (res.needMoreData) return;
+      if (!res.match) {
+        this._notSupportedFormat = true;
+        return;
+      } else {
+        this._demuxer = res.demuxer;
+      }
+    }
+    this._demuxer!.demux(this._buffer);
   }
 }

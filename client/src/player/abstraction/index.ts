@@ -7,6 +7,7 @@ export * from "./codec/color-transfer-characteristic";
 export * from "./codec/i-audio-frame";
 export * from "./codec/i-channel-layout";
 export * from "./codec/i-frame";
+export * from "./codec/i-packet";
 export * from "./codec/i-video-frame";
 export * from "./codec/picture-type";
 export * from "./codec/pixel-format";
@@ -19,8 +20,11 @@ export * from "./event/i-event-target";
 
 export * from "./exception/throw-helper";
 
-export * from "./worker/i-message";
-
+export * from "./format/i-chapter";
+export * from "./format/i-demuxer";
+export * from "./format/i-probe-result";
+export * from "./format/i-program";
+export * from "./format/i-stream";
 export * from "./format/media-format";
 
 export * from "./logging/logging";

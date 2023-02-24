@@ -21,7 +21,7 @@ export class IOContext extends EventTarget {
 
   public open(url: string, option?: ISourceOption): void {
     const source = this._sourceContainer.findSource(url);
-    ThrowHelper.ThrowIfFalsy(source, `Unsupported Url protocal: ${url}`);
+    ThrowHelper.ThrowIf(!source, `Unsupported Url protocal: ${url}`);
     this._source = source!;
     this._source.addEventListener(
       DataArriveledEvent.Type,

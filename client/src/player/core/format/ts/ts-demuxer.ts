@@ -159,5 +159,12 @@ export class TSDemuxer implements IDemuxer {
     childScope.close();
   }
 
-  private parsePES(scope: Scope, payloadStart: number): void {}
+  private parsePES(scope: Scope, payloadStart: number): void {
+    if (payloadStart) scope.skip(8);
+    // read packet_start_code_prefix(24 bit)
+    if (scope.read(24) !== 0x000001) return;
+    // read stream_id(8 bit)
+    const streamId = scope.read(8);
+    const packetLength = scope.read(16);
+  }
 }

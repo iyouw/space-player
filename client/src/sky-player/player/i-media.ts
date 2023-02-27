@@ -1,3 +1,1 @@
-export interface IMedia {
-
-}
+export interface IMedia {}

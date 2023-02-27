@@ -58,9 +58,11 @@ export class MemoryStream {
   public write(buffer: Uint8Array): MemoryStream;
   public write(buffer: Array<ArrayBuffer>): MemoryStream;
   public write(buffer: Array<Uint8Array>): MemoryStream;
-  public write(buffer: ArrayBuffer | Uint8Array | Array<ArrayBuffer | Uint8Array>): MemoryStream {
+  public write(
+    buffer: ArrayBuffer | Uint8Array | Array<ArrayBuffer | Uint8Array>
+  ): MemoryStream {
     const buffers = Array.isArray(buffer) ? buffer : [buffer];
-    const size = buffers.reduce((ret, buf) =>ret += buf.byteLength, 0);
+    const size = buffers.reduce((ret, buf) => (ret += buf.byteLength), 0);
     this.ensureFreeSize(size);
     for (const buf of buffers) {
       const b = buf instanceof Uint8Array ? buf : new Uint8Array(buf);

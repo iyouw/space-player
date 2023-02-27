@@ -35,9 +35,9 @@ export class BitReader {
       const shift = remaing - read;
       const mask = 0xff >> (8 - read);
 
-      res = (res << read) | (val & (mask << shift) >> shift);
+      res = (res << read) | (val & ((mask << shift) >> shift));
       this._index += read;
-      count -= read; 
+      count -= read;
     }
     return res;
   }

@@ -13,7 +13,7 @@ export class Logging {
     const msg = this.formatMessage(`debug`, category, message);
     console.log(msg);
   }
-  
+
   public static warn(category: string, message: string): void {
     const msg = this.formatMessage(`warn`, category, message);
     console.warn(msg);
@@ -40,7 +40,11 @@ export class Logging {
     return `${year}-${month}-${date} ${hour}:${minute}:${second}`;
   }
 
-  private static formatMessage(prefix: string, category: string, message: string): string {
+  private static formatMessage(
+    prefix: string,
+    category: string,
+    message: string
+  ): string {
     const now = this.getDateTime();
     const padding = ` `.repeat(prefix.length + 2);
     return `${prefix}: ${category} [${now}]\n${padding}${message}`;

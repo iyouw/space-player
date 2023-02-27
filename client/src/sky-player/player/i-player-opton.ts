@@ -1,3 +1,1 @@
-export interface IPlayerOption {
-  
-}
+export interface IPlayerOption {}

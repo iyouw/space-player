@@ -1,5 +1,5 @@
+import { CHANNEL_NAME } from "../channel/channel-name";
 import { Logging } from "../logging/logging";
-import { SkyPlayer } from "../player/sky-player";
 
 export class SubtitleWorker {
   public static readonly Default = new SubtitleWorker();
@@ -7,7 +7,7 @@ export class SubtitleWorker {
   private _bc: BroadcastChannel;
 
   public constructor() {
-    this._bc = new BroadcastChannel(SkyPlayer.Channel);
+    this._bc = new BroadcastChannel(CHANNEL_NAME);
   }
 
   public start(): void {

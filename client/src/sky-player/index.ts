@@ -1,1 +1,1 @@
-export * from './player/sky-player';
+export * from "./player/sky-player";

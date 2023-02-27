@@ -1,4 +1,4 @@
-import type { IDemuxer, IProbeResult } from "@/player/abstraction";
+import type { IDemuxer, IProbeResult, IStream } from "@/player/abstraction";
 import type { IPacket } from "@/player/abstraction/codec/i-packet";
 import type { IProgram } from "@/player/abstraction/format/i-program";
 import type { BitBuffer } from "../../buffer/bit-buffer";
@@ -6,7 +6,7 @@ import type { Scope } from "../../buffer/scope";
 import { OrderMap } from "../../map/order-map";
 import { Program } from "../program";
 import { Stream } from "../stream";
-import { PAT_PID } from "./ts-constant";
+import { PAT_PID, STREAM_TYPE_VIDEO_DIRAC } from "./ts-constant";
 
 export class TSDemuxer implements IDemuxer {
   public static readonly Default = new TSDemuxer();
@@ -29,6 +29,11 @@ export class TSDemuxer implements IDemuxer {
   }
 
   private _programs: OrderMap<IProgram, number>;
+
+  private _selectedProgram?: IProgram;
+  private _selectedVideoStream?: IStream;
+  private _selectedAudioStream?: IStream;
+  private _selectedSubtitleStream?: IStream;
 
   private _videoPacket?: IPacket;
   private _audioPacket?: IPacket;
@@ -71,17 +76,17 @@ export class TSDemuxer implements IDemuxer {
       if (pid === PAT_PID) {
         this.parsePAT(scope, payloadStart);
         scope.close();
-        return;
+        this.selectProgram();
       }
       // check if pid is current program
       if (pid === this.currentProgram?.id) {
         this.parsePMT(scope, payloadStart);
         scope.close();
-        return;
+        this.selectStream();
       }
       // check if pid is current stream
-      if (this.currentProgram?.has(pid)) {
-        this.parsePES(scope, payloadStart);
+      if (this._selectedProgram?.has(pid)) {
+        this.parsePES(scope, payloadStart, this._selectedProgram.getStream(pid)!);
       }
     }
     scope.close();
@@ -120,7 +125,7 @@ export class TSDemuxer implements IDemuxer {
   }
 
   private parsePMT(scope: Scope, payloadStart: number): void {
-    if (this.currentProgram?.hasStream) return;
+    if (this._selectedProgram?.hasStream) return;
     if (payloadStart) scope.skip(8);
     // read pmt table_id(8 bit)
     if (scope.read(8) !== 0x02) return;
@@ -159,12 +164,63 @@ export class TSDemuxer implements IDemuxer {
     childScope.close();
   }
 
-  private parsePES(scope: Scope, payloadStart: number): void {
-    if (payloadStart) scope.skip(8);
+  private parsePES(scope: Scope, payloadStart: number, stream: IStream): void {
     // read packet_start_code_prefix(24 bit)
     if (scope.read(24) !== 0x000001) return;
+    if (payloadStart) {
+      if (stream.packet && stream.packet.data.length > 0) {
+        // complete packet
+      }
+      stream.packet = {
+        data: [],
+        pts: 0,
+        dts: 0,
+        duration: 0,
+      }
+    }
     // read stream_id(8 bit)
     const streamId = scope.read(8);
     const packetLength = scope.read(16);
+    // resvered(2 bit) skip pes_scrambling_control(2 bit), pes_priority(1 bit),
+    // data_alignment_indicator(1 bit), copyright(1 bit), original_or_copy(1 bit)
+    scope.skip(8);
+    const ptsDtsFlag = scope.read(2);
+    // skip es_cr_flag(1 bit), es_rate_flag(1 bit), dsm_trick_mode_flag(1 bit)
+    // additional_copy_into_flag(1 bit), pes_crc_flag(1 bit), pes_extension_flag(1 bit)
+    scope.skip(6);
+    const headerLength = scope.read(8);
+    const payloadBeginIndex = scope.index + headerLength << 3;
+    let pts = 0;
+    if (ptsDtsFlag & 0x2) {
+      // The Presentation Timestamp is encoded as 33(!) bit
+      // integer, but has a "marker bit" inserted at weird places
+      // in between, making the whole thing 5 bytes in size.
+      // You can't make this shit up...
+      scope.skip(4);
+      const p32_30 = scope.read(3);
+      scope.skip(1);
+      const p29_15 = scope.read(15);
+      scope.skip(1);
+      const p14_0 = scope.read(15);
+      scope.skip(1);
+
+      // Can't use bit shifts here; we need 33 bits of precision,
+      // so we're using JavaScript's double number type. Also
+      // divide by the 90khz clock to get the pts in seconds.
+      pts = (p32_30 * 1073741824 + p29_15 * 32768 + p14_0) / 90000;
+    }
+    stream.packet!.pts = pts;
+    stream.packet!.data.push();
+  }
+
+  private selectProgram(): void {
+    if (this._selectedProgram) return;
+    this._selectedProgram = this._programs.firstOrDefault();
+  }
+
+  private selectStream(): void {
+    if (!this._selectedVideoStream) {
+      this._selectedVideoStream = this._selectedProgram?.streams.filter((x) => x.type <= STREAM_TYPE_VIDEO_DIRAC)[0];
+    }
   }
 }

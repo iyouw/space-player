@@ -9,21 +9,18 @@ import type { IPlayerOption } from "@/player/abstraction/player/i-player-option"
 import { ThrowHelper } from "@/player/abstraction/exception/throw-helper";
 import { IOContext } from "../context/io-context";
 
-import { AudioDecodeWorkerProxy } from "../worker-proxy/audio-decode-worker-proxy";
-import { FormatWorkerProxy } from "../worker-proxy/format-worker-proxy";
-import { SubtitleDecodeWorkerProxy } from "../worker-proxy/subtitle-decode-worker-proxy";
-import { VideoDecodeWorkerProxy } from "../worker-proxy/video-decode-worker-proxy";
-
 export class Player {
   private _mediaInformation?: IMediaInformation;
 
+  private _bc: BroadcastChannel;
+
   private _ioContext: IOContext;
 
-  private _formatWorkerProxy: FormatWorkerProxy;
+  private _formatWorker: Worker;
 
-  private _videoDecodeWorkerProxy: VideoDecodeWorkerProxy;
-  private _audioDecodeWorkerProxy: AudioDecodeWorkerProxy;
-  private _subtitleDecodeWorkerProxy: SubtitleDecodeWorkerProxy;
+  private _videoDecodeWorker: Worker;
+  private _audioDecodeWorker: Worker;
+  private _subtitleDecodeWorker: Worker;
 
   private _videoFrameQueue: Array<IVideoFrame>;
   private _audioFrameQueue: Array<IAudioFrame>;
@@ -38,17 +35,19 @@ export class Player {
 
   public constructor(option?: IPlayerOption) {
     this._option = option;
+    this._bc = new BroadcastChannel(`player.linker-design`);
 
     this._ioContext = new IOContext();
-    this._formatWorkerProxy = new FormatWorkerProxy();
-    this._videoDecodeWorkerProxy = new VideoDecodeWorkerProxy();
-    this._audioDecodeWorkerProxy = new AudioDecodeWorkerProxy();
-    this._subtitleDecodeWorkerProxy = new SubtitleDecodeWorkerProxy();
+    
+    this._formatWorker = new Worker(new URL(`../worker/format-worker`, import.meta.url), { type: `module`});
+    this._videoDecodeWorker = new Worker(new URL(`../worker/video-decode-worker`, import.meta.url), {type: `module`});
+    this._audioDecodeWorker = new Worker(new URL(`../worker/audio-decode-worker`, import.meta.url), {type: `module`});
+    this._subtitleDecodeWorker = new Worker(new URL(`../worker/subtitle-decode-worker`, import.meta.url), {type: `module`});
+
     this._videoFrameQueue = new Array<IVideoFrame>();
     this._audioFrameQueue = new Array<IAudioFrame>();
     this._subtitleFrameQueue = new Array<IFrame>();
 
-    this._formatWorkerProxy.connect(this._ioContext);
   }
 
   public mount(root: HTMLElement): Player {

@@ -29,4 +29,8 @@ export class Program implements IProgram {
   public addStream(stream: IStream, key: number): void {
     this._streams.set(key, stream);
   }
+
+  public getStream(pid: number): IStream | undefined {
+    return this._streams.get(pid);
+  }
 }

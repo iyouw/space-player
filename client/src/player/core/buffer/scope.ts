@@ -23,6 +23,10 @@ export class Scope {
     return this._end;
   }
 
+  public get index(): number {
+    return this._buffer.index;
+  }
+
   public close(): void {
     this._buffer.index = this._end;
   }

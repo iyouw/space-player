@@ -1,39 +1,36 @@
 import type { IMessage } from "@/player/abstraction";
 import { Logging } from "@/player/abstraction";
 import { FormatContext } from "../context/format-context";
-import { WorkerBase } from "./worker-base";
 
-export class DemuxWorker extends WorkerBase {
-  public static Default?: DemuxWorker;
+export class FormatWorker {
+  public static readonly Default = new FormatWorker();
 
   public static Start(): void {
-    if (!this.Default) this.Default = new DemuxWorker();
-    this.Default.start();
+    FormatWorker.Default.start();
   }
 
-  private _formateContext: FormatContext;
+  private _bc: BroadcastChannel;
+
+  private _context: FormatContext
 
   public constructor() {
-    super();
-    this._formateContext = new FormatContext();
+    this._bc = new BroadcastChannel(`player.linker-design`);
+    this._context = new FormatContext();
   }
 
-  public override start(): void {
-    Logging.LogInformation(DemuxWorker.name, `demux worker starting`);
+  public start(): void {
+    Logging.LogInformation(FormatWorker.name, `format worker starting!`);
+    this._bc.onmessage = this.onMessage.bind(this);
   }
 
-  protected override onMessage(e: MessageEvent<IMessage>): void {
-    const { type, data } = e.data;
+  public onMessage(event: MessageEvent<IMessage>): void {
+    const { type, data } = event.data;
     switch (type) {
-      case "dataarriveled":
-        this.onDataArriveled(data as ArrayBuffer);
+      case `dataarriveled`:
+        this._context.appendData(data as ArrayBuffer);
         break;
     }
   }
-
-  private onDataArriveled(data: ArrayBuffer): void {
-    this._formateContext.appendData(data);
-  }
 }
 
-DemuxWorker.Start();
+FormatWorker.Start();

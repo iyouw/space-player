@@ -14,8 +14,11 @@ export class IOContext extends EventTarget {
 
   private _source?: ISource;
 
+  private _bc: BroadcastChannel;
+
   public constructor() {
     super();
+    this._bc = new BroadcastChannel(`player.linker-design`);
     this._sourceContainer = SourceContainer.Default;
   }
 
@@ -36,6 +39,9 @@ export class IOContext extends EventTarget {
   }
 
   private onDataArriveled(e: IEvent): void {
-    this.dispatchEvent(e);
+    this._bc.postMessage({
+      type: `dataarriveled`,
+      data: (e as any).data
+    })
   }
 }

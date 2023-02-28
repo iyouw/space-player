@@ -97,7 +97,7 @@ export class SkyPlayer {
       const checkReady = () => {
         if (this._ready) resolve();
         setTimeout(() => checkReady(), 10);
-      }
+      };
       checkReady();
     });
   }

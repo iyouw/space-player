@@ -13,7 +13,12 @@ export class WorkerReadyMessage extends ChannelMessage<number> {
 
   public static readonly Subtitle = 1 << 4;
 
-  public static readonly Ready = WorkerReadyMessage.IO | WorkerReadyMessage.Format | WorkerReadyMessage.Video | WorkerReadyMessage.Audio | WorkerReadyMessage.Subtitle
+  public static readonly Ready =
+    WorkerReadyMessage.IO |
+    WorkerReadyMessage.Format |
+    WorkerReadyMessage.Video |
+    WorkerReadyMessage.Audio |
+    WorkerReadyMessage.Subtitle;
 
   public constructor(data: number) {
     super(WorkerReadyMessage.Type, data);

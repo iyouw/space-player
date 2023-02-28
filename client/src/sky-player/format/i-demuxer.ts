@@ -1,5 +1,5 @@
 import type { Handler } from "@/sky-player/typings/func";
-import type { Packet } from "../packet";
+import type { Packet } from "./packet";
 
 export interface IDemuxer {
   open(): void;

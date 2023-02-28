@@ -27,19 +27,7 @@ export class BitReader {
   }
 
   public peek(count: number): number {
-    let res = 0;
-    while (count > 0) {
-      const val = this._stream.get(this._index >> 3);
-      const remaing = 8 - (this._index & 7);
-      const read = remaing < count ? remaing : count;
-      const shift = remaing - read;
-      const mask = 0xff >> (8 - read);
-
-      res = (res << read) | (val & ((mask << shift) >> shift));
-      this._index += read;
-      count -= read;
-    }
-    return res;
+    return this._stream.peek(count);
   }
 
   public read(count: number): number {
@@ -49,10 +37,12 @@ export class BitReader {
   }
 
   public skip(count: number): void {
+    this._stream.skip(count);
     this._index = Math.min(this._end, this._index + count);
   }
 
   public rewind(count: number): void {
+    this._stream.rewind(count);
     this._index = Math.max(0, this._index - count);
   }
 
@@ -66,7 +56,6 @@ export class BitReader {
 
   public createChild(count: number): BitReader {
     ThrowHelper.ThrowIf(count > this._end - this._index, `out of range`);
-    const start = this._index;
-    return new BitReader(this._stream, start, count);
+    return new BitReader(this._stream, this._index, count);
   }
 }

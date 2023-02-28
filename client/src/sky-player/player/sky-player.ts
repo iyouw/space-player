@@ -68,7 +68,7 @@ export class SkyPlayer {
   public async play(media: IMedia): Promise<void> {
     await this.waitReady();
     this._media = media;
-    Logging.debug(SkyPlayer.name, `play media`);
+    Logging.Debug(SkyPlayer.name, `play media`);
     this._bc.postMessage(new OpenMediaMessage(media));
   }
 
@@ -86,7 +86,7 @@ export class SkyPlayer {
   }
 
   private onReady(flag: number): void {
-    Logging.debug(SkyPlayer.name, `${flag} worker is ready`);
+    Logging.Debug(SkyPlayer.name, `${flag} worker is ready`);
     this._readyFlag |= flag;
     if (this._readyFlag !== WorkerReadyMessage.Ready) return;
     this._ready = true;

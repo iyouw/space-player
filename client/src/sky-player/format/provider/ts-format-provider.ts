@@ -1,6 +1,6 @@
 import type { MemoryStream } from "@/sky-player/stream/memory-stream";
-import type { IDemuxer } from "../format/i-demuxer";
-import { TSDemuxer } from "../format/ts/ts-demuxer";
+import type { IDemuxer } from "../i-demuxer";
+import { TSDemuxer } from "../ts/ts-demuxer";
 import type { IFormatProvider } from "./i-format-provider";
 import { ProbeResult } from "./probe-result";
 

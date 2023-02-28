@@ -1,35 +1,35 @@
 export class Logging {
-  public static trace(category: string, message: string): void {
-    const msg = this.formatMessage(`trace`, category, message);
+  public static Trace(category: string, message: string): void {
+    const msg = this.FormatMessage(`trace`, category, message);
     console.log(msg);
   }
 
-  public static log(category: string, message: string): void {
-    const msg = this.formatMessage(`info`, category, message);
+  public static Debug(category: string, message: string): void {
+    const msg = this.FormatMessage(`debug`, category, message);
     console.log(msg);
   }
 
-  public static debug(category: string, message: string): void {
-    const msg = this.formatMessage(`debug`, category, message);
+  public static Info(category: string, message: string): void {
+    const msg = this.FormatMessage(`info`, category, message);
     console.log(msg);
   }
 
-  public static warn(category: string, message: string): void {
-    const msg = this.formatMessage(`warn`, category, message);
+  public static Warn(category: string, message: string): void {
+    const msg = this.FormatMessage(`warn`, category, message);
     console.warn(msg);
   }
 
-  public static error(category: string, message: string): void {
-    const msg = this.formatMessage(`error`, category, message);
+  public static Error(category: string, message: string): void {
+    const msg = this.FormatMessage(`error`, category, message);
     console.error(msg);
   }
 
-  public static critical(category: string, message: string): void {
-    const msg = this.formatMessage(`critical`, category, message);
+  public static Critical(category: string, message: string): void {
+    const msg = this.FormatMessage(`critical`, category, message);
     console.error(msg);
   }
 
-  private static getDateTime(): string {
+  private static GetDateTime(): string {
     const now = new Date();
     const year = now.getFullYear();
     const month = now.getMonth() + 1;
@@ -40,12 +40,12 @@ export class Logging {
     return `${year}-${month}-${date} ${hour}:${minute}:${second}`;
   }
 
-  private static formatMessage(
+  private static FormatMessage(
     prefix: string,
     category: string,
     message: string
   ): string {
-    const now = this.getDateTime();
+    const now = this.GetDateTime();
     const padding = ` `.repeat(prefix.length + 2);
     return `${prefix}: ${category} [${now}]\n${padding}${message}`;
   }

@@ -1,5 +1,5 @@
 import type { MemoryStream } from "@/sky-player/stream/memory-stream";
-import type { IDemuxer } from "../format/i-demuxer";
+import type { IDemuxer } from "../i-demuxer";
 import type { ProbeResult } from "./probe-result";
 
 export interface IFormatProvider {

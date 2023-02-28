@@ -11,6 +11,10 @@ export abstract class Engine<T = unknown> {
     this._bc = bc;
   }
 
+  public get providers(): Array<T> {
+    return this._providers;
+  }
+
   public start(): void {
     this.listen();
   }

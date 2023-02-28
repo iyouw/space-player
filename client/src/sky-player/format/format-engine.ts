@@ -1,10 +1,12 @@
 import type { ChannelMessage } from "../channel/channel-message";
 import { Engine } from "../engine/engine";
+import { Logging } from "../logging/logging";
 import { FormatMediaMessage } from "../player/messsage/format-media-message";
+import { UnknowFormatMessage } from "../player/messsage/unknow-format-message";
 import { MemoryStream } from "../stream/memory-stream";
-import type { IFormatProvider } from "./format-provider/i-format-provider";
-import { TSFormatProvider } from "./format-provider/ts-format-provider";
-import type { IDemuxer } from "./format/i-demuxer";
+import type { IFormatProvider } from "./provider/i-format-provider";
+import { TSFormatProvider } from "./provider/ts-format-provider";
+import type { IDemuxer } from "./i-demuxer";
 import type { Packet } from "./packet";
 
 export class FormatEngine extends Engine<IFormatProvider> {
@@ -65,9 +67,17 @@ export class FormatEngine extends Engine<IFormatProvider> {
 
   private formatMedia(data: ArrayBuffer): void {
     if (this._isUnknowFormat) return;
-    this.receiveData(data);
-    this.selectDemuxer();
-    this.demuxing();
+    Logging.Info(FormatEngine.name, `start format media`);
+    try {
+      this.receiveData(data);
+      this.selectDemuxer();
+      this.demuxing();
+    } catch (error: unknown) {
+      if (error instanceof UnknowFormatMessage) this.send(error);
+      else if (error instanceof Error)
+        Logging.Error(FormatEngine.name, error.message);
+      else Logging.Error(FormatEngine.name, `${error}`);
+    }
   }
 
   private receiveData(data: ArrayBuffer): void {
@@ -77,6 +87,19 @@ export class FormatEngine extends Engine<IFormatProvider> {
 
   private selectDemuxer(): void {
     if (this._demuxer) return;
+    let success: boolean = false;
+    let needData: boolean = false;
+    for (const provider of this.providers) {
+      const res = provider.probe(this._stream!);
+      if (res.isSuccess) {
+        this._demuxer = res.provider!.createDemuxer(this._stream!);
+        success = true;
+        break;
+      }
+      if (res.isNeedData) needData = true;
+    }
+    if (success || needData) return;
+    throw new UnknowFormatMessage();
   }
 
   private demuxing(): void {

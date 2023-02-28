@@ -12,7 +12,7 @@ export class SubtitleWorker {
   }
 
   public start(): void {
-    Logging.log(SubtitleWorker.name, `subtitle worker starting`);
+    Logging.Info(SubtitleWorker.name, `subtitle worker starting`);
     this._bc.postMessage(new WorkerReadyMessage(WorkerReadyMessage.Subtitle));
   }
 }

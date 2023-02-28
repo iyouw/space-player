@@ -1,5 +1,6 @@
 import { CHANNEL_NAME } from "../channel/channel-name";
 import { Logging } from "../logging/logging";
+import { WorkerReadyMessage } from "../player/messsage/worker-ready-message";
 
 export class VideoWorker {
   public static readonly Default = new VideoWorker();
@@ -12,6 +13,7 @@ export class VideoWorker {
 
   public start(): void {
     Logging.log(VideoWorker.name, `video worker starting`);
+    this._bc.postMessage(new WorkerReadyMessage(WorkerReadyMessage.Video));
   }
 }
 

@@ -1,5 +1,6 @@
 import { CHANNEL_NAME } from "../channel/channel-name";
 import { Logging } from "../logging/logging";
+import { WorkerReadyMessage } from "../player/messsage/worker-ready-message";
 
 export class AudioWorker {
   public static readonly Default = new AudioWorker();
@@ -12,6 +13,7 @@ export class AudioWorker {
 
   public start(): void {
     Logging.log(AudioWorker.name, `audio worker starting`);
+    this._bc.postMessage(new WorkerReadyMessage(WorkerReadyMessage.Audio));
   }
 }
 

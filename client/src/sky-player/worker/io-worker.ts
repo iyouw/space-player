@@ -3,6 +3,7 @@ import { CHANNEL_NAME } from "../channel/channel-name";
 import { Logging } from "../logging/logging";
 import type { IMedia } from "../player/i-media";
 import { OpenMediaMessage } from "../player/messsage/open-media-message";
+import { WorkerReadyMessage } from "../player/messsage/worker-ready-message";
 
 export class IOWorker {
   public static readonly Default = new IOWorker();
@@ -16,9 +17,11 @@ export class IOWorker {
   public start(): void {
     Logging.log(IOWorker.name, `io worker starting`);
     this.listen();
+    this._bc.postMessage(new WorkerReadyMessage(WorkerReadyMessage.IO));
   }
 
   public listen(): void {
+    Logging.debug(IOWorker.name, `listen broadcast channel`);
     this._bc.onmessage = this.onMessage.bind(this);
   }
 
@@ -32,7 +35,7 @@ export class IOWorker {
   }
 
   private openMedia(media: IMedia): void {
-    Logging.log(IOWorker.name, JSON.stringify(media, null, `  `));
+    Logging.log(IOWorker.name, JSON.stringify(media));
   }
 }
 

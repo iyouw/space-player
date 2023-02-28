@@ -1,5 +1,6 @@
 import { CHANNEL_NAME } from "../channel/channel-name";
 import { Logging } from "../logging/logging";
+import { WorkerReadyMessage } from "../player/messsage/worker-ready-message";
 
 export class SubtitleWorker {
   public static readonly Default = new SubtitleWorker();
@@ -12,6 +13,7 @@ export class SubtitleWorker {
 
   public start(): void {
     Logging.log(SubtitleWorker.name, `subtitle worker starting`);
+    this._bc.postMessage(new WorkerReadyMessage(WorkerReadyMessage.Subtitle))
   }
 }
 

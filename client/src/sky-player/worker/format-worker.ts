@@ -1,5 +1,6 @@
 import { CHANNEL_NAME } from "../channel/channel-name";
 import { Logging } from "../logging/logging";
+import { WorkerReadyMessage } from "../player/messsage/worker-ready-message";
 
 export class FormatWorker {
   public static readonly Default = new FormatWorker();
@@ -12,6 +13,7 @@ export class FormatWorker {
 
   public start(): void {
     Logging.log(FormatWorker.name, `format worker starting`);
+    this._bc.postMessage(new WorkerReadyMessage(WorkerReadyMessage.Format));
   }
 }
 

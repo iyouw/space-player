@@ -13,7 +13,7 @@ export class AudioWorker {
 
   public start(): void {
     Logging.Info(AudioWorker.name, `audio worker starting`);
-    this._bc.postMessage(new WorkerReadyMessage(WorkerReadyMessage.Audio));
+    this._bc.postMessage(WorkerReadyMessage.Audio);
   }
 }
 

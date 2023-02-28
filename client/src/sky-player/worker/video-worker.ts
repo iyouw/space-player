@@ -13,7 +13,7 @@ export class VideoWorker {
 
   public start(): void {
     Logging.Info(VideoWorker.name, `video worker starting`);
-    this._bc.postMessage(new WorkerReadyMessage(WorkerReadyMessage.Video));
+    this._bc.postMessage(WorkerReadyMessage.Video);
   }
 }
 

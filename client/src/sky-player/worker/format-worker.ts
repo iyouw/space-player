@@ -12,13 +12,13 @@ export class FormatWorker {
 
   public constructor() {
     this._bc = new BroadcastChannel(CHANNEL_NAME);
-    this._engine = new FormatEngine(this._bc);
+    this._engine = FormatEngine.CreateDefault(this._bc);
   }
 
   public start(): void {
     Logging.Info(FormatWorker.name, `format worker starting`);
     this._engine.start();
-    this._bc.postMessage(new WorkerReadyMessage(WorkerReadyMessage.Format));
+    this._bc.postMessage(WorkerReadyMessage.Format);
   }
 }
 

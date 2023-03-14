@@ -1,4 +1,4 @@
-import { ThrowHelper } from "../exception/throw-helper";
+import type { Counter } from "../counter/counter";
 import type { MemoryStream } from "./memory-stream";
 
 export class BitReader {
@@ -12,12 +12,14 @@ export class BitReader {
 
   private _index: number;
 
-  public constructor(stream: MemoryStream, start: number, count: number) {
+  private _counter?: Counter;
+
+  public constructor(stream: MemoryStream, count: number) {
     this._stream = stream;
 
-    this._start = start;
+    this._start = this._stream.index << 3;
     this._count = count;
-    this._end = start + count;
+    this._end = this._start + this._count;
 
     this._index = this._start;
   }
@@ -26,24 +28,45 @@ export class BitReader {
     return this._index >= this._end;
   }
 
-  public peek(count: number): number {
-    return this._stream.peek(count);
+  public attachCounter(counter: Counter): void {
+    this._counter = counter;
   }
 
-  public read(count: number): number {
+  public peek(count: number): number | undefined {
+    if (this._index + count > this._end) return undefined;
+    let res = 0;
+    let offset = this._index;
+    while (count) {
+      const num = this._stream.get(offset >> 3);
+      if (num === undefined) return undefined;
+      const remaining = 8 - (offset & 7);
+      const read = remaining < count ? remaining : count;
+      const shift = remaining - read;
+      const mask = 0xff >> (8 - read);
+
+      res = (res << read) | ((num & (mask << shift)) >> shift);
+      offset += read;
+      count -= read;
+    }
+    return res;
+  }
+
+  public read(count: number): number | undefined {
+    if (this._index + count > this._end) return undefined;
     const res = this.peek(count);
     this._index += count;
+    this._counter?.count(count);
     return res;
   }
 
   public skip(count: number): void {
-    this._stream.skip(count);
     this._index = Math.min(this._end, this._index + count);
+    this._counter?.count(count);
   }
 
   public rewind(count: number): void {
-    this._stream.rewind(count);
     this._index = Math.max(0, this._index - count);
+    this._counter?.count(-count);
   }
 
   public has(count: number): boolean {
@@ -52,10 +75,5 @@ export class BitReader {
 
   public close(): void {
     this._stream.seek(this._end >> 3);
-  }
-
-  public createChild(count: number): BitReader {
-    ThrowHelper.ThrowIf(count > this._end - this._index, `out of range`);
-    return new BitReader(this._stream, this._index, count);
   }
 }

@@ -9,12 +9,11 @@ export class MemoryStream {
 
   private _threshold: number;
 
-  // bit position
   private _index: number;
 
   private _length: number;
 
-  private _finalLength: number;
+  private _totalLength: number;
 
   public constructor(
     capacity: number = MemoryStream.OnePage,
@@ -24,7 +23,7 @@ export class MemoryStream {
     this._threshold = threshold;
     this._index = 0;
     this._length = 0;
-    this._finalLength = 0;
+    this._totalLength = 0;
   }
 
   public get data(): Uint8Array {
@@ -35,10 +34,6 @@ export class MemoryStream {
     return this._data.length;
   }
 
-  public get bitCapacity(): number {
-    return this._data.length << 3;
-  }
-
   public get threshold(): number {
     return this._threshold;
   }
@@ -47,20 +42,12 @@ export class MemoryStream {
     return this._index;
   }
 
-  public get position(): number {
-    return this._index >> 3;
-  }
-
   public get length(): number {
     return this._length;
   }
 
-  public get bitLength(): number {
-    return this._length << 3;
-  }
-
-  public get finalLength(): number {
-    return this._finalLength;
+  public get totalLength(): number {
+    return this._totalLength;
   }
 
   public get free(): number {
@@ -82,69 +69,57 @@ export class MemoryStream {
       this._data.set(b, this._length);
       this._length += b.byteLength;
     }
-    this._finalLength += size;
+    this._totalLength += size;
     return this;
   }
 
-  public collect(): MemoryStream {
-    if (this.position === 0) return this;
-    this._data.copyWithin(0, this.position, this._length);
-    this._length -= this.position;
+  public collect(): void {
+    if (this._index === 0) return;
+    if (this.capacity < this._threshold) return; 
+    this._data.copyWithin(0, this._index, this._length);
+    this._length -= this._index;
     this._index = 0;
-    return this;
   }
 
-  public peek(count: number): number {
-    let res = 0;
-    while (count > 0) {
-      const value = this._data[this.position];
-      const remaining = 8 - (this._index & 7);
-      const read = remaining < count ? remaining : count;
-      const shift = 8 - read;
-      const mask = 0xff >> shift;
-
-      res = (res << read) | ((value & (mask << shift)) >> shift);
-      count -= read;
-    }
-    return res;
+  public seek(index: number): void {
+    this._index = Math.max(0, Math.min(this._length, index));
   }
 
-  public seek(index: number): MemoryStream {
-    this._index = Math.max(0, Math.min(this.bitCapacity, index));
-    return this;
+  public skip(count: number): boolean {
+    if (count < 0) return false;
+    this._index = Math.min(this._length, this._index + count);
+    return true;
   }
 
-  public skip(count: number): MemoryStream {
-    this._index = Math.min(this.bitLength, this._index + count);
-    return this;
-  }
-
-  public rewind(count: number): MemoryStream {
+  public rewind(count: number): boolean {
+    if (count < 0) return false;
     this._index = Math.max(0, this._index - count);
-    return this;
+    return true;
   }
 
   public has(count: number): boolean {
-    return this.bitLength - this._index >= count;
+    return this._length - this._index >= count;
   }
 
-  public get(index: number): number {
+  public get(index: number): number | undefined {
+    if (index < 0 || index > this._length) return undefined;
     return this._data[index];
   }
 
   public readBit(count: number): BitReader {
-    return new BitReader(this, this._index, count);
+    return new BitReader(this, count);
   }
 
   public close(): void {
     this._index = 0;
     this._length = 0;
-    this._finalLength = 0;
+    this._totalLength = 0;
+    this._data = new Uint8Array(MemoryStream.OnePage);
   }
 
   private ensureFreeSize(size: number): void {
     if (this.free > size) return;
-    if (this.free + this.position > size && this.capacity > this._threshold) {
+    if (this.free + this._index > size && this.capacity > this._threshold) {
       this.collect();
       return;
     }

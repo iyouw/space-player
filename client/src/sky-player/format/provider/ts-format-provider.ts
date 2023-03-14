@@ -11,7 +11,7 @@ export class TSFormatProvider implements IFormatProvider {
 
   public probe(stream: MemoryStream): ProbeResult {
     const packetSize = 188;
-    if (!stream.has((packetSize << 3) * 3)) return ProbeResult.NeedData();
+    if (!stream.has(packetSize * 3)) return ProbeResult.NeedData();
     const startCode = 0x47;
     for (let i = 0; i < 188; i++) {
       if (

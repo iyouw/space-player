@@ -7,20 +7,20 @@ export abstract class DemuxerBase {
 
   protected _option?: unknown;
 
-  public onVideoPacketCompleted?: Handler<Packet>;
   public onAudioPacketCompleted?: Handler<Packet>;
   public onSubtitlePacketCompleted?: Handler<Packet>;
+  public onVideoPacketCompleted?: Handler<Packet>;
 
   public constructor(stream: MemoryStream, option?: unknown) {
     this._stream = stream;
     this._option = option;
   }
 
-  public abstract open(): void;
-
   public abstract demux(): void;
 
-  public close(): void {
+  public dispose(): void {
+    this.onAudioPacketCompleted = undefined;
+    this.onSubtitlePacketCompleted = undefined;
     this.onVideoPacketCompleted = undefined;
   }
 }

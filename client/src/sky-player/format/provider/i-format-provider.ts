@@ -5,5 +5,5 @@ import type { ProbeResult } from "./probe-result";
 export interface IFormatProvider {
   is(format: string): boolean;
   probe(stream: MemoryStream): ProbeResult;
-  createDemuxer(stream: MemoryStream): IDemuxer;
+  createDemuxer(stream: MemoryStream, option?: unknown): IDemuxer;
 }

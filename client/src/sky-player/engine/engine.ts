@@ -27,7 +27,7 @@ export abstract class Engine<T = unknown> {
     this._providers.push(provider);
   }
 
-  public find(predicate: Predicate<T>): T | undefined {
+  protected find(predicate: Predicate<T>): T | undefined {
     for (const provider of this._providers) {
       if (predicate(provider)) return provider;
     }

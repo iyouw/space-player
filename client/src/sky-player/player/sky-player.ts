@@ -4,6 +4,8 @@ import { Logging } from "../logging/logging";
 import type { IMedia } from "./i-media";
 import type { IPlayerOption } from "./i-player-opton";
 import { OpenMediaMessage } from "./messsage/open-media-message";
+import { RenderAudioMessage } from "./messsage/render-audio-message";
+import { RenderVideoMessage } from "./messsage/render-video-message";
 import { WorkerReadyMessage } from "./messsage/worker-ready-message";
 
 export class SkyPlayer {
@@ -82,6 +84,12 @@ export class SkyPlayer {
       case WorkerReadyMessage.Type:
         this.onReady(data as number);
         break;
+      case RenderVideoMessage.Type:
+        this.renderVideo(data);
+        break;
+      case RenderAudioMessage.Type:
+        this.renderAudio(data);
+        break;
     }
   }
 
@@ -100,5 +108,13 @@ export class SkyPlayer {
       };
       checkReady();
     });
+  }
+
+  private renderVideo(data: unknown): void {
+
+  }
+
+  private renderAudio(data: unknown): void {
+    
   }
 }

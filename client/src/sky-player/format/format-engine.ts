@@ -8,6 +8,10 @@ import type { IFormatProvider } from "./provider/i-format-provider";
 import { TSFormatProvider } from "./provider/ts-format-provider";
 import type { IDemuxer } from "./i-demuxer";
 import type { Packet } from "./packet";
+import type { Handler } from "../typings/func";
+import { DecodeVideoMessage } from "../player/messsage/decode-video-message";
+import { DecodeAudioMessage } from "../player/messsage/decode-audio-message";
+import { DecodeSubtitleMessage } from "../player/messsage/decode-subtitle-message";
 
 export class FormatEngine extends Engine<IFormatProvider> {
   public static CreateDefault(bc: BroadcastChannel): FormatEngine {
@@ -20,49 +24,24 @@ export class FormatEngine extends Engine<IFormatProvider> {
 
   private _demuxer?: IDemuxer;
 
-  private _programs?: Array<unknown>;
-
-  private _streams?: Array<unknown>;
-
-  private _selectedProgram?: unknown;
-
-  private _selectedVideoStream?: unknown;
-
-  private _selectedAudioStream?: unknown;
-
-  private _selectedSubtitleStream?: unknown;
-
-  private _videoPacket?: Packet;
-
-  private _audioPacket?: Packet;
-
-  private _subtitlePacket?: Packet;
-
   private _isUnknowFormat?: boolean;
+
+
+  public constructor(bc: BroadcastChannel) {
+    super(bc);
+  }
 
   public stop(): void {
     super.stop();
-    this._demuxer?.close();
+    this._demuxer?.dispose();
     this._demuxer = undefined;
     this._stream = undefined;
-    this._programs = undefined;
-    this._streams = undefined;
-    this._selectedProgram = undefined;
-    this._selectedVideoStream = undefined;
-    this._selectedAudioStream = undefined;
-    this._selectedSubtitleStream = undefined;
-    this._videoPacket = undefined;
-    this._audioPacket = undefined;
-    this._subtitlePacket = undefined;
   }
 
   protected override onMessage(event: MessageEvent<ChannelMessage>): void {
     const { type, data } = event.data;
-    switch (type) {
-      case FormatMediaMessage.Type:
-        this.formatMedia(data as ArrayBuffer);
-        break;
-    }
+    if (type !== FormatMediaMessage.Type) return;
+    this.formatMedia(data as ArrayBuffer);
   }
 
   private formatMedia(data: ArrayBuffer): void {
@@ -93,6 +72,7 @@ export class FormatEngine extends Engine<IFormatProvider> {
       const res = provider.probe(this._stream!);
       if (res.isSuccess) {
         this._demuxer = res.provider!.createDemuxer(this._stream!);
+        this.monitorDemuxer();
         success = true;
         break;
       }
@@ -104,5 +84,27 @@ export class FormatEngine extends Engine<IFormatProvider> {
 
   private demuxing(): void {
     this._demuxer?.demux();
+  }
+
+  private monitorDemuxer(): void {
+    if (!this._demuxer) return;
+    this._demuxer.onAudioPacketCompleted = this.onAudioPacketCompleted.bind(this);
+    this._demuxer.onSubtitlePacketCompleted = this.onSubtitlePacketCompleted.bind(this);
+    this._demuxer.onVideoPacketCompleted = this.onVideoPacketCompleted.bind(this);
+  }
+
+  private onVideoPacketCompleted(packet: Packet): void {
+    const decodeVideoMessage = new DecodeVideoMessage(packet);
+    this.send(decodeVideoMessage);
+  }
+
+  private onAudioPacketCompleted(packet: Packet): void {
+    const decodeAudioMessage = new DecodeAudioMessage(packet);
+    this.send(decodeAudioMessage);
+  }
+
+  private onSubtitlePacketCompleted(packet: Packet): void {
+    const decodeSubtitleMessage = new DecodeSubtitleMessage(packet);
+    this.send(decodeSubtitleMessage);
   }
 }

@@ -2,9 +2,9 @@ import { Counter } from "@/sky-player/counter/counter";
 import { Program } from "../program";
 
 export class TSProgram extends Program {
-  public counter: Counter;
+  public readonly counter: Counter;
 
-  public constructor(id: number = 0, number: number = 0){
+  public constructor(id: number = 0, number: number = 0) {
     super(id, number);
     this.counter = new Counter();
   }

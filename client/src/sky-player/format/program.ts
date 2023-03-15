@@ -5,10 +5,7 @@ export abstract class Program {
   public number: number;
   public streams: Array<Stream>;
 
-  public constructor(
-    id: number = NaN, 
-    number: number = NaN, 
-  ) {
+  public constructor(id: number = NaN, number: number = NaN) {
     this.id = id;
     this.number = number;
     this.streams = new Array<Stream>();

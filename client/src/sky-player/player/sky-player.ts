@@ -110,11 +110,7 @@ export class SkyPlayer {
     });
   }
 
-  private renderVideo(data: unknown): void {
+  private renderVideo(data: unknown): void {}
 
-  }
-
-  private renderAudio(data: unknown): void {
-    
-  }
+  private renderAudio(data: unknown): void {}
 }

@@ -8,7 +8,11 @@ export class Counter {
   }
 
   public get isMax(): boolean {
-    return this._max !== 0 && this._count >= this._max;
+    return this.hasMax && this._count >= this._max;
+  }
+
+  public get hasMax(): boolean {
+    return this._max !== 0;
   }
 
   public setMax(max: number): void {

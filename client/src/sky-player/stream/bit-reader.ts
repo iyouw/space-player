@@ -28,6 +28,10 @@ export class BitReader {
     return this._index >= this._end;
   }
 
+  public get index(): number {
+    return this._index;
+  }
+
   public attachCounter(counter: Counter): void {
     this._counter = counter;
   }
@@ -64,6 +68,10 @@ export class BitReader {
     this._counter?.count(count);
   }
 
+  public skipTo(index: number): void {
+    this._index = Math.min(this._end, index);
+  }
+
   public rewind(count: number): void {
     this._index = Math.max(0, this._index - count);
     this._counter?.count(-count);
@@ -71,6 +79,41 @@ export class BitReader {
 
   public has(count: number): boolean {
     return this._end - this._index >= count;
+  }
+
+  public readBuffer(start?: number, end?: number): Uint8Array {
+    start ??= this._index;
+    end ??= this._end;
+    const res = this._stream.slice(start >> 3, end >> 3);
+    this._counter?.count(end - start);
+    return res;
+  }
+
+  public findStartCode(code: number): number {
+    let current = 0;
+    while (current !== code && current !== -1) {
+      current = this.findNextStartCode();
+    }
+    return current;
+  }
+
+  public findNextStartCode(): number {
+    for (let i = (this._index + 7) >> 3; i < (this._count >> 3); i++) {
+      if (this.isStartCode(i)) {
+        this._index = (i + 4) << 3;
+        return this._stream.get(i + 3)!;
+      }
+    }
+    this._index = this._end;
+    return -1;
+  }
+
+  public isStartCode(index: number): boolean {
+    return index >= (this._count >> 3) || (
+      this._stream.get(index)! === 0x00 &&
+      this._stream.get(index + 1)! === 0x00 &&
+      this._stream.get(index + 2)! === 0x01
+    )
   }
 
   public close(): void {

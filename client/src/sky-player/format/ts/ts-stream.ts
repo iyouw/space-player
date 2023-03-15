@@ -19,7 +19,7 @@ export class TSStream extends Stream {
     return false;
   }
 
-  public override get codecType(): AVCodecID {
+  public override get codecId(): AVCodecID {
     return this.type;
   }
 }

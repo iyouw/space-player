@@ -75,7 +75,7 @@ export class MemoryStream {
 
   public collect(): void {
     if (this._index === 0) return;
-    if (this.capacity < this._threshold) return; 
+    if (this.capacity < this._threshold) return;
     this._data.copyWithin(0, this._index, this._length);
     this._length -= this._index;
     this._index = 0;
@@ -104,6 +104,18 @@ export class MemoryStream {
   public get(index: number): number | undefined {
     if (index < 0 || index > this._length) return undefined;
     return this._data[index];
+  }
+
+  public read(start?: number, end?: number): Uint8Array {
+    const res = this.slice(start, end);
+    this._index = end ?? this._length;
+    return res;
+  }
+
+  public slice(start?: number, end?: number): Uint8Array {
+    start ??= this._index;
+    end ??= this._length;
+    return this._data.subarray(start, end);
   }
 
   public readBit(count: number): BitReader {

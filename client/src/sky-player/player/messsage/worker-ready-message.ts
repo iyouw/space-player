@@ -19,16 +19,24 @@ export class WorkerReadyMessage extends ChannelMessage<number> {
     WorkerReadyMessage.VideoFlag |
     WorkerReadyMessage.AudioFlag |
     WorkerReadyMessage.SubtitleFlag;
-  
+
   public static readonly IO = new WorkerReadyMessage(WorkerReadyMessage.IOFlag);
 
-  public static readonly Format = new WorkerReadyMessage(WorkerReadyMessage.FormatFlag);
+  public static readonly Format = new WorkerReadyMessage(
+    WorkerReadyMessage.FormatFlag
+  );
 
-  public static readonly Video = new WorkerReadyMessage(WorkerReadyMessage.VideoFlag);
+  public static readonly Video = new WorkerReadyMessage(
+    WorkerReadyMessage.VideoFlag
+  );
 
-  public static readonly Audio = new WorkerReadyMessage(WorkerReadyMessage.AudioFlag);
+  public static readonly Audio = new WorkerReadyMessage(
+    WorkerReadyMessage.AudioFlag
+  );
 
-  public static readonly Subtitle = new WorkerReadyMessage(WorkerReadyMessage.SubtitleFlag);
+  public static readonly Subtitle = new WorkerReadyMessage(
+    WorkerReadyMessage.SubtitleFlag
+  );
 
   public constructor(data: number) {
     super(WorkerReadyMessage.Type, data);

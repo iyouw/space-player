@@ -1,10 +1,13 @@
 import type { ChannelMessage } from "../channel/channel-message";
 import { CHANNEL_NAME } from "../channel/channel-name";
+import type { Frame } from "../codec/frame";
 import { Logging } from "../logging/logging";
+import { GLRenderer } from "../renderer/webgl/gl-renderer";
 import type { IMedia } from "./i-media";
 import type { IPlayerOption } from "./i-player-opton";
 import { OpenMediaMessage } from "./messsage/open-media-message";
 import { RenderAudioMessage } from "./messsage/render-audio-message";
+import { RenderSubtitleMessage } from "./messsage/render-subtitle-message";
 import { RenderVideoMessage } from "./messsage/render-video-message";
 import { WorkerReadyMessage } from "./messsage/worker-ready-message";
 
@@ -28,6 +31,14 @@ export class SkyPlayer {
   private _readyFlag: number;
 
   private _media?: IMedia;
+
+  private _audioFrameQueue: Array<Frame>;
+  private _subtitleFrameQueue: Array<Frame>;
+  private _videoFrameQueue: Array<Frame>;
+
+  private _animationId: number;
+
+  private _renderer: GLRenderer;
 
   public constructor(option?: IPlayerOption) {
     this._bc = new BroadcastChannel(CHANNEL_NAME);
@@ -61,10 +72,19 @@ export class SkyPlayer {
     this._streaming = false;
     this._ready = false;
     this._readyFlag = 0;
+
+    this._audioFrameQueue = new Array<Frame>();
+    this._subtitleFrameQueue = new Array<Frame>();
+    this._videoFrameQueue = new Array<Frame>();
+
+    this._animationId = 0;
+
+    this._renderer = new GLRenderer(option);
   }
 
   public mount(root: HTMLElement): void {
     this._root = root;
+    this._renderer.mount(root);
   }
 
   public async play(media: IMedia): Promise<void> {
@@ -72,6 +92,7 @@ export class SkyPlayer {
     this._media = media;
     Logging.Debug(SkyPlayer.name, `play media`);
     this._bc.postMessage(new OpenMediaMessage(media));
+    this.doPlay();
   }
 
   private listen(): void {
@@ -84,11 +105,14 @@ export class SkyPlayer {
       case WorkerReadyMessage.Type:
         this.onReady(data as number);
         break;
-      case RenderVideoMessage.Type:
-        this.renderVideo(data);
-        break;
       case RenderAudioMessage.Type:
         this.renderAudio(data);
+        break;
+      case RenderSubtitleMessage.Type:
+        this.renderSubtitle(data);
+        break;
+      case RenderVideoMessage.Type:
+        this.renderVideo(data);
         break;
     }
   }
@@ -110,7 +134,47 @@ export class SkyPlayer {
     });
   }
 
-  private renderVideo(data: unknown): void {}
+  private renderAudio(data: unknown): void {
+    Logging.Debug(SkyPlayer.name, `received audio frame`);
+    this._audioFrameQueue.push(data as Frame);
+  }
 
-  private renderAudio(data: unknown): void {}
+  private renderSubtitle(data: unknown): void {
+    Logging.Debug(SkyPlayer.name, `received subtitle frame`);
+    this._subtitleFrameQueue.push(data as Frame);
+  }
+
+  private renderVideo(data: unknown): void {
+    Logging.Debug(SkyPlayer.name, `received video frame`);
+    this._videoFrameQueue.push(data as Frame);
+  }
+
+  private doPlay(): void {
+    if (this._animationId) return;
+
+    this._animationId = requestAnimationFrame(this.update.bind(this));
+    // this._wantsToPlay = true;
+    this._paused = false;
+  }
+
+  private update(): void {
+    this._animationId = requestAnimationFrame(this.update.bind(this));
+
+    // if (!this._videoFrameQueue.length) this._renderer.renderProgress(0.8);
+
+    this.updateForStreaming();
+  }
+
+  private updateForStreaming(): void {
+    const frame = this._videoFrameQueue.shift();
+    if (!frame) return;
+    const buffers = frame.buffers;
+    this._renderer.render(
+      buffers[0],
+      buffers[1],
+      buffers[2],
+      frame.width,
+      frame.height
+    );
+  }
 }

@@ -1,4 +1,5 @@
 import type { Counter } from "../counter/counter";
+import { OutRangeExcenption } from "../exception/out-range-exception";
 import type { MemoryStream } from "./memory-stream";
 
 export class BitReader {
@@ -36,13 +37,13 @@ export class BitReader {
     this._counter = counter;
   }
 
-  public peek(count: number): number | undefined {
-    if (this._index + count > this._end) return undefined;
+  public peek(count: number): number {
+    const index = this._index + count;
+    this.checkRange(index);
     let res = 0;
     let offset = this._index;
     while (count) {
       const num = this._stream.get(offset >> 3);
-      if (num === undefined) return undefined;
       const remaining = 8 - (offset & 7);
       const read = remaining < count ? remaining : count;
       const shift = remaining - read;
@@ -55,8 +56,7 @@ export class BitReader {
     return res;
   }
 
-  public read(count: number): number | undefined {
-    if (this._index + count > this._end) return undefined;
+  public read(count: number): number {
     const res = this.peek(count);
     this._index += count;
     this._counter?.count(count);
@@ -64,16 +64,21 @@ export class BitReader {
   }
 
   public skip(count: number): void {
-    this._index = Math.min(this._end, this._index + count);
+    const index = this._index + count;
+    this.checkRange(index);
+    this._index = index;
     this._counter?.count(count);
   }
 
   public skipTo(index: number): void {
-    this._index = Math.min(this._end, index);
+    this.checkRange(index);
+    this._index = index;
   }
 
   public rewind(count: number): void {
-    this._index = Math.max(0, this._index - count);
+    const index = this._index - count;
+    this.checkRange(index);
+    this._index = index;
     this._counter?.count(-count);
   }
 
@@ -84,6 +89,8 @@ export class BitReader {
   public readBuffer(start?: number, end?: number): Uint8Array {
     start ??= this._index;
     end ??= this._end;
+    this.checkRange(start);
+    this.checkRange(end);
     const res = this._stream.slice(start >> 3, end >> 3);
     this._counter?.count(end - start);
     return res;
@@ -91,14 +98,16 @@ export class BitReader {
 
   public findStartCode(code: number): number {
     let current = 0;
-    while (current !== code && current !== -1) {
+    while (true) {
       current = this.findNextStartCode();
+      if (current === code || current === -1) break;
     }
     return current;
   }
 
   public findNextStartCode(): number {
-    for (let i = (this._index + 7) >> 3; i < (this._count >> 3); i++) {
+    const totalBytes = this.getTotalBytes() - 3;
+    for (let i = this.getNextByteIndex(); i <= totalBytes; i++) {
       if (this.isStartCode(i)) {
         this._index = (i + 4) << 3;
         return this._stream.get(i + 3)!;
@@ -109,14 +118,32 @@ export class BitReader {
   }
 
   public isStartCode(index: number): boolean {
-    return index >= (this._count >> 3) || (
-      this._stream.get(index)! === 0x00 &&
-      this._stream.get(index + 1)! === 0x00 &&
-      this._stream.get(index + 2)! === 0x01
-    )
+    return (
+      index >= this.getTotalBytes() ||
+      (this._stream.get(index)! === 0x00 &&
+        this._stream.get(index + 1)! === 0x00 &&
+        this._stream.get(index + 2)! === 0x01)
+    );
+  }
+
+  public isNextBytesAreStartCode(): boolean {
+    return this.isStartCode(this.getNextByteIndex());
   }
 
   public close(): void {
     this._stream.seek(this._end >> 3);
+  }
+
+  private getNextByteIndex(): number {
+    return (this._index + 7) >> 3;
+  }
+
+  private getTotalBytes(): number {
+    return this._count >> 3;
+  }
+
+  private checkRange(index: number): void {
+    if (index > this._end || index < this._start)
+      throw new OutRangeExcenption(this._start, this._end, index);
   }
 }

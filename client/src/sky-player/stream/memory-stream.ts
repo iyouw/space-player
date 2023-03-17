@@ -1,3 +1,4 @@
+import { OutRangeExcenption } from "../exception/out-range-exception";
 import { BitReader } from "./bit-reader";
 
 export class MemoryStream {
@@ -82,27 +83,28 @@ export class MemoryStream {
   }
 
   public seek(index: number): void {
-    this._index = Math.max(0, Math.min(this._length, index));
+    this.checkRange(index);
+    this._index = index;
   }
 
-  public skip(count: number): boolean {
-    if (count < 0) return false;
-    this._index = Math.min(this._length, this._index + count);
-    return true;
+  public skip(count: number): void {
+    const index = this._index + count;
+    this.checkRange(index);
+    this._index = index;
   }
 
-  public rewind(count: number): boolean {
-    if (count < 0) return false;
-    this._index = Math.max(0, this._index - count);
-    return true;
+  public rewind(count: number): void {
+    const index = this._index - count;
+    this.checkRange(index);
+    this._index = index;
   }
 
   public has(count: number): boolean {
     return this._length - this._index >= count;
   }
 
-  public get(index: number): number | undefined {
-    if (index < 0 || index > this._length) return undefined;
+  public get(index: number): number {
+    this.checkRange(index);
     return this._data[index];
   }
 
@@ -115,10 +117,14 @@ export class MemoryStream {
   public slice(start?: number, end?: number): Uint8Array {
     start ??= this._index;
     end ??= this._length;
+    this.checkRange(start);
+    this.checkRange(end);
     return this._data.subarray(start, end);
   }
 
   public readBit(count: number): BitReader {
+    const index = this._index + (count >> 3);
+    this.checkRange(index);
     return new BitReader(this, count);
   }
 
@@ -140,5 +146,10 @@ export class MemoryStream {
     const buf = new Uint8Array(capacity);
     buf.set(this._data);
     this._data = buf;
+  }
+
+  private checkRange(index: number): void {
+    if (index > this._length || index < 0)
+      throw new OutRangeExcenption(0, this._length, index);
   }
 }

@@ -122,7 +122,8 @@ export class MemoryStream {
     return this._data.subarray(start, end);
   }
 
-  public readBit(count: number): BitReader {
+  public readBit(count?: number): BitReader {
+    count ??= (this._length - this._index) << 3;
     const index = this._index + (count >> 3);
     this.checkRange(index);
     return new BitReader(this, count);

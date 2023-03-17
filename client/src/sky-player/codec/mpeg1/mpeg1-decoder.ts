@@ -101,12 +101,13 @@ export class Mpeg1Decoder implements IDecoder {
   onFrameCompleted?: Handler<Frame>;
 
   public decode(packet: Packet): Frame | undefined {
-    const res = new Frame(packet.pts, packet.codecId);
-    res.width = this._width;
-    res.height = this._height;
-    const stream = new MemoryStream();
-    stream.write(packet.buffers);
-    const reader = stream.readBit(stream.length << 3);
+    const res = new Frame(
+      packet.pts,
+      packet.codecId,
+      this._width,
+      this._height
+    );
+    const reader = this.createPacketReader(packet);
     if (!this.decodeSequenceLayer(reader, res)) return;
     if (!this.decodePicture(reader, res)) return;
     return res;
@@ -552,6 +553,16 @@ export class Mpeg1Decoder implements IDecoder {
   }
 
   // helpers
+  private createPacketReader(packet: Packet): BitReader {
+    const totalLength = packet.buffers.reduce(
+      (ret, buf) => (ret += buf.byteLength),
+      0
+    );
+    const stream = new MemoryStream(totalLength);
+    stream.write(packet.buffers);
+    return stream.readBit();
+  }
+
   private initBuffers(): void {
     this._intraQuantMatrix = DEFAULT_INTRA_QUANT_MATRIX;
     this._nonIntraQuantMatrix = DEFAULT_NON_INTRA_QUANT_MATRIX;

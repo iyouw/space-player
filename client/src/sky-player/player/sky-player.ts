@@ -1,7 +1,6 @@
 import type { ChannelMessage } from "../channel/channel-message";
 import { CHANNEL_NAME } from "../channel/channel-name";
 import type { Frame } from "../codec/frame";
-import { LogLevel } from "../logging/log-level";
 import { Logging } from "../logging/logging";
 import { GLRenderer } from "../renderer/webgl/gl-renderer";
 import type { IMedia } from "./i-media";
@@ -169,11 +168,15 @@ export class SkyPlayer {
   private updateForStreaming(): void {
     const frame = this._videoFrameQueue.shift();
     if (!frame) return;
+    Logging.Info(
+      SkyPlayer.name,
+      `remaining video frames:${this._videoFrameQueue.length}`
+    );
     const buffers = frame.buffers;
     this._renderer.render(
-      buffers[0],
-      buffers[1],
-      buffers[2],
+      buffers[0] as Uint8ClampedArray,
+      buffers[1] as Uint8ClampedArray,
+      buffers[2] as Uint8ClampedArray,
       frame.width,
       frame.height
     );

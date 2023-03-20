@@ -173,7 +173,13 @@ export const QUANT_LUT_STEP4 = [
   [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
 ];
 
-export const QUANT_TAB = [
+export type TabItem = {
+  levels: number;
+  group: number;
+  bits: number;
+};
+
+export const QUANT_TAB: Array<TabItem> = [
   { levels: 3, group: 1, bits: 5 }, //  1
   { levels: 5, group: 1, bits: 7 }, //  2
   { levels: 7, group: 0, bits: 3 }, //  3

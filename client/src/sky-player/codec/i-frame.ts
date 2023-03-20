@@ -5,4 +5,7 @@ export interface IFrame {
   codecId: AVCodecID;
   width: number;
   height: number;
+  bitrate: number;
+  sampleRate: number;
+  frameSize: number;
 }

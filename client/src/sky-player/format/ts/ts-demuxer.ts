@@ -192,6 +192,7 @@ export class TSDemuxer extends DemuxerBase implements IDemuxer {
   }
 
   private selectStreams(): void {
+    Logging.Trace(TSDemuxer.name, `select streams`);
     let streams = new Array<Stream>();
     this._programs.forEach((x) => (streams = streams.concat(x.streams)));
     const audioStreams = streams.filter((x) => x.isAudio);
@@ -200,7 +201,6 @@ export class TSDemuxer extends DemuxerBase implements IDemuxer {
     this._selectedAudioStream = audioStreams[0];
     this._selectedSubtitleStream = subtitleStreams[0];
     this._selectedVideoStream = videoStreams[0];
-    Logging.Info(TSDemuxer.name, `select streams`);
   }
 
   private parseAudio(reader: BitReader, payloadStart: number): void {

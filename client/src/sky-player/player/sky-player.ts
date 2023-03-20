@@ -1,6 +1,7 @@
 import type { ChannelMessage } from "../channel/channel-message";
 import { CHANNEL_NAME } from "../channel/channel-name";
 import type { Frame } from "../codec/frame";
+import { LogLevel } from "../logging/log-level";
 import { Logging } from "../logging/logging";
 import { GLRenderer } from "../renderer/webgl/gl-renderer";
 import type { IMedia } from "./i-media";

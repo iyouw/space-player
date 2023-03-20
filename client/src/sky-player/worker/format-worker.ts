@@ -16,7 +16,7 @@ export class FormatWorker {
   }
 
   public start(): void {
-    Logging.Info(FormatWorker.name, `format worker starting`);
+    Logging.Trace(FormatWorker.name, `format worker starting`);
     this._engine.start();
     this._bc.postMessage(WorkerReadyMessage.Format);
   }

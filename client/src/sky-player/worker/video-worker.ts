@@ -16,7 +16,7 @@ export class VideoWorker {
   }
 
   public start(): void {
-    Logging.Info(VideoWorker.name, `video worker starting`);
+    Logging.Trace(VideoWorker.name, `video worker starting`);
     this._engine.start();
     this._bc.postMessage(WorkerReadyMessage.Video);
   }

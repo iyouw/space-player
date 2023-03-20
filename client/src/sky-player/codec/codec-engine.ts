@@ -32,7 +32,7 @@ export class CodecEngine extends Engine<ICodecProvider> {
   }
 
   private decodeVideoPacket(packet: Packet): void {
-    Logging.Info(CodecEngine.name, `receive packet for decoding`);
+    Logging.Trace(CodecEngine.name, `receive packet for decoding`);
     this.findDecoder(packet);
     const frame = this._decoder!.decode(packet);
     if (!frame) return;

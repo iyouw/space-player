@@ -46,7 +46,7 @@ export class FormatEngine extends Engine<IFormatProvider> {
 
   private formatMedia(data: ArrayBuffer): void {
     if (this._isUnknowFormat) return;
-    Logging.Info(FormatEngine.name, `start format media`);
+    Logging.Trace(FormatEngine.name, `start format media`);
     try {
       this.receiveData(data);
       this.selectDemuxer();

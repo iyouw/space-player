@@ -17,7 +17,7 @@ export class IOWorker {
   }
 
   public start(): void {
-    Logging.Info(IOWorker.name, `io worker starting`);
+    Logging.Trace(IOWorker.name, `io worker starting`);
     this._engine.start();
     this._bc.postMessage(WorkerReadyMessage.IO);
   }

@@ -20,6 +20,7 @@ import {
   ZIG_ZAG,
 } from "./constants";
 import type { Handler } from "@/sky-player/typings/func";
+import { Logging } from "@/sky-player/logging/logging";
 
 export class Mpeg1Decoder implements IDecoder {
   private _customIntraQuantMatrix: Uint8Array = new Uint8Array(64);
@@ -101,6 +102,7 @@ export class Mpeg1Decoder implements IDecoder {
   onFrameCompleted?: Handler<Frame>;
 
   public decode(packet: Packet): Frame | undefined {
+    const start = self.performance.now();
     const res = new Frame(
       packet.pts,
       packet.codecId,
@@ -110,6 +112,8 @@ export class Mpeg1Decoder implements IDecoder {
     const reader = this.createPacketReader(packet);
     if (!this.decodeSequenceLayer(reader, res)) return;
     if (!this.decodePicture(reader, res)) return;
+    const duration = self.performance.now() - start;
+    Logging.Debug(Mpeg1Decoder.name, `time elapsed:${duration}`);
     return res;
   }
 

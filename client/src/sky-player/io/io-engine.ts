@@ -35,7 +35,7 @@ export class IOEngine extends Engine<ISourceProvider> {
 
   // message handlers
   private openMedia(media: IMedia): void {
-    Logging.Info(IOEngine.name, JSON.stringify(media));
+    Logging.Trace(IOEngine.name, JSON.stringify(media));
     const provider = this.find((provider) => provider.canOpen(media.url));
     if (!provider) {
       this.send(new OpenMediaErrorMessage(media));
@@ -48,7 +48,7 @@ export class IOEngine extends Engine<ISourceProvider> {
   }
 
   private onReceivedData(data: ArrayBuffer): void {
-    Logging.Info(IOEngine.name, `received source data`);
+    Logging.Trace(IOEngine.name, `received source data`);
     this.send(new FormatMediaMessage(data));
   }
 }

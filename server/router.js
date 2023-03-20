@@ -37,7 +37,10 @@ router.all('/rtsp/mpeg', (ctx)=> {
         .addOutputOption("-preset", "ultrafast", "-movflags", "faststart", "-tune", "zerolatency", "-b:v", "2MiB", "-bf", "0")
         .format("mpegts")
         .videoCodec("mpeg1video")
-        .noAudio()
+        .audioCodec("mp2")
+        .audioBitrate(44100)
+        .audioChannels(1)
+
         .pipe(stream);
   } catch (error) {
     console.log(error);

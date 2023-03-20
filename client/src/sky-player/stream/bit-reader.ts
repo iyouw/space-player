@@ -110,7 +110,7 @@ export class BitReader {
     for (let i = this.getNextByteIndex(); i <= totalBytes; i++) {
       if (this.isStartCode(i)) {
         this._index = (i + 4) << 3;
-        return this._stream.get(i + 3)!;
+        return this._stream.get(i + 3);
       }
     }
     this._index = this._end;
@@ -120,9 +120,9 @@ export class BitReader {
   public isStartCode(index: number): boolean {
     return (
       index >= this.getTotalBytes() ||
-      (this._stream.get(index)! === 0x00 &&
-        this._stream.get(index + 1)! === 0x00 &&
-        this._stream.get(index + 2)! === 0x01)
+      (this._stream.get(index) === 0x00 &&
+        this._stream.get(index + 1) === 0x00 &&
+        this._stream.get(index + 2) === 0x01)
     );
   }
 

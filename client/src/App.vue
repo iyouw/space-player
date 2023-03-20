@@ -10,7 +10,8 @@ const player = ref<HTMLElement>();
 
 const skyPlayer = new SkyPlayer();
 
-const rtsp = "rtsp://admin:LH123456@172.16.3.229:554/h264/ch49/sub/av_stream";
+const rtsp = "rtsp://wowzaec2demo.streamlock.net/vod/mp4:BigBuckBunny_115k.mp4";
+// const rtsp= "rtsp://admin:LH123456@hzlinker.synology.me/ch44/main/av_stream"
 const server = "ws://localhost:3000";
 const url = `${server}/rtsp/mpeg?url=${rtsp}`;
 

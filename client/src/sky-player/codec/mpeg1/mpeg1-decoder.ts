@@ -129,17 +129,15 @@ export class Mpeg1Decoder implements IDecoder {
 
     // size change
     if (this._width !== newWidth || this._height !== newHeight) {
-      this._width = newWidth;
-      this._height = newHeight;
+      frame.width = this._width = newWidth;
+      frame.height = this._height = newHeight;
       this.initBuffers();
-      frame.width = newWidth;
-      frame.height = newHeight;
     }
 
     // load custom intra quant matrix
     if (reader.read(1)) {
       for (let i = 0; i < 64; i++) {
-        this._customIntraQuantMatrix[ZIG_ZAG[i]] = reader.read(8)!;
+        this._customIntraQuantMatrix[ZIG_ZAG[i]] = reader.read(8);
       }
       this._intraQuantMatrix = this._customIntraQuantMatrix;
     }
@@ -226,7 +224,7 @@ export class Mpeg1Decoder implements IDecoder {
 
     do {
       this.decodeMacroblock(reader);
-    } while (reader.isNextBytesAreStartCode());
+    } while (!reader.isNextBytesAreStartCode());
   }
 
   // macro block layer
@@ -279,6 +277,7 @@ export class Mpeg1Decoder implements IDecoder {
         );
         increment--;
       }
+      this._macroblockAddress++;
     }
 
     this._mbRow = (this._macroblockAddress / this._mbWidth) | 0;
@@ -458,13 +457,13 @@ export class Mpeg1Decoder implements IDecoder {
         } else if (level === 128) {
           level = reader.read(8) - 256;
         } else if (level > 128) {
-          level -= 256;
+          level = level - 256;
         }
       } else {
         run = coeff >> 8;
         level = coeff & 0xff;
         if (reader.read(1)) {
-          level -= level;
+          level = -level;
         }
       }
 
@@ -623,7 +622,7 @@ export class Mpeg1Decoder implements IDecoder {
 
   private resetMotionVectors(): void {
     this._motionFwH = this._motionFwHPrev = 0;
-    this._motionFwV = this._motionFwHPrev = 0;
+    this._motionFwV = this._motionFwVPrev = 0;
   }
 
   private resetDcPredictors(): void {

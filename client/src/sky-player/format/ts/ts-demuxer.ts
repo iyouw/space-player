@@ -151,9 +151,9 @@ export class TSDemuxer extends DemuxerBase implements IDemuxer {
     // check is payload start
     if (payloadStart) reader.skip(8);
     // read pmt table_id(8 bit)
-    if (reader.read(8) == 0x02) return;
+    if (reader.read(8) !== 0x02) return;
     // read section_syntax_indicator(1 bit)
-    if (reader.read(1) == 0x01) return;
+    if (reader.read(1) !== 0x01) return;
     // skip zero(1 bit), reserve(2 bit),
     reader.skip(3);
     // read section_length(12 bit)

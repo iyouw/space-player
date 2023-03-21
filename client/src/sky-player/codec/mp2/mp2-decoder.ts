@@ -54,7 +54,7 @@ export class Mp2Decoder implements IDecoder {
     new Array<Array<number>>(32),
   ];
 
-  public onFrameCompleted?: Handler<Frame>;
+  public onFrameCompleted?: Handler<IFrame>;
 
   public constructor() {
     this._d.set(SYNTHESIS_WINDOW, 0);
@@ -68,17 +68,14 @@ export class Mp2Decoder implements IDecoder {
     }
   }
 
-  public decode(packet: Packet): IFrame | undefined {
-    const start = self.performance.now();
-    const res = new Frame(packet.pts, packet.codecId);
+  public decode(packet: Packet): void {
     const reader = this.createPacketReader(packet);
-    if (!this.decodeFrame(reader, res)) return;
-    const elapsed = self.performance.now() - start;
-    Logging.Info(Mp2Decoder.name, `decode mp2,elapsed: ${elapsed}`);
-    return res;
+    while (!reader.isEnd) {
+      this.decodeFrame(reader, packet);
+    }
   }
 
-  private decodeFrame(reader: BitReader, frame: Frame): boolean {
+  private decodeFrame(reader: BitReader, packet: Packet): void {
     const sync = reader.read(11);
     const version = reader.read(2);
     const layer = reader.read(2);
@@ -89,17 +86,17 @@ export class Mp2Decoder implements IDecoder {
       version !== VERSION.MPEG_1 ||
       layer != LAYER.II
     ) {
-      return false;
+      return;
     }
 
     let bitrateIndex = reader.read(4) - 1;
     // invalid bit rate or free format
-    if (bitrateIndex > 13) return false;
+    if (bitrateIndex > 13) return;
 
     let sampleRateIndex = reader.read(2);
 
     // invalid sample rate
-    if (sampleRateIndex === 3) return false;
+    if (sampleRateIndex === 3) return;
     if (version === VERSION.MPEG_2) {
       sampleRateIndex += 4;
       bitrateIndex += 14;
@@ -123,12 +120,12 @@ export class Mp2Decoder implements IDecoder {
     if (hasCRC) reader.skip(16);
 
     // compute the frame size
-    const bitrate = (frame.bitrate = BIT_RATE[bitrateIndex]);
-    const sampleRate =
-      (this._sampleRate =
-      frame.sampleRate =
-        SAMPLE_RATE[sampleRateIndex]);
-    frame.frameSize = ((144000 * bitrate) / sampleRate + padding) | 0;
+    const bitrate = BIT_RATE[bitrateIndex];
+    const sampleRate = SAMPLE_RATE[sampleRateIndex];
+    const frameSize = ((144000 * bitrate) / sampleRate + padding) | 0;
+    const frame = new Frame(packet.pts, packet.codecId);
+    frame.bitrate = bitrate;
+    frame.frameSize = frameSize;
 
     // prepare the quantizer table lookups
     let tab3 = 0;
@@ -276,7 +273,6 @@ export class Mp2Decoder implements IDecoder {
     frame.addBuffer(this._left);
     frame.addBuffer(this._right);
     this.onFrameCompleted?.(frame);
-    return true;
   }
 
   private createPacketReader(packet: Packet): BitReader {

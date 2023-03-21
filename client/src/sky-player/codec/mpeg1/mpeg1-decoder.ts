@@ -21,6 +21,7 @@ import {
 } from "./constants";
 import type { Handler } from "@/sky-player/typings/func";
 import { Logging } from "@/sky-player/logging/logging";
+import type { IFrame } from "../i-frame";
 
 export class Mpeg1Decoder implements IDecoder {
   private _customIntraQuantMatrix: Uint8Array = new Uint8Array(64);
@@ -99,22 +100,21 @@ export class Mpeg1Decoder implements IDecoder {
   private _dcPredictorCr: number = 0;
   private _dcPredictorCb: number = 0;
 
-  onFrameCompleted?: Handler<Frame>;
+  onFrameCompleted?: Handler<IFrame>;
 
-  public decode(packet: Packet): Frame | undefined {
+  public decode(packet: Packet): void {
     const start = self.performance.now();
-    const res = new Frame(
+    const frame = new Frame(
       packet.pts,
       packet.codecId,
       this._width,
       this._height
     );
     const reader = this.createPacketReader(packet);
-    if (!this.decodeSequenceLayer(reader, res)) return;
-    if (!this.decodePicture(reader, res)) return;
+    if (!this.decodeSequenceLayer(reader, frame)) return;
+    if (!this.decodePicture(reader, frame)) return;
     const duration = self.performance.now() - start;
     Logging.Debug(Mpeg1Decoder.name, `time elapsed:${duration}`);
-    return res;
   }
 
   // sequence layer
